@@ -6,6 +6,9 @@ import Home from './pages/home/Home'
 
 import Wardrobe from './pages/wardrobe/Wardrobe'
 import AddClothing from './pages/wardrobe/AddClothing'
+import ClothingDetails from './pages/wardrobe/ClothingDetails'
+import EditClothing from './pages/wardrobe/EditClothing'
+import SavedOutfit from './pages/outfit/SavedOutfit'
 
 import OutfitStudio from './pages/outfit/OutfitStudio'
 import Spaces from './pages/spaces/Spaces'
@@ -81,6 +84,20 @@ function App() {
             element={<AddClothing />}
           />
 
+          <Route
+  path="/wardrobe/:clothingId"
+  element={<ClothingDetails />}
+/>
+
+<Route
+  path="/wardrobe/:clothingId/edit"
+  element={<EditClothing />}
+/>
+
+<Route
+  path="/outfit/:outfitId/view"
+  element={<SavedOutfit />}
+/>
           {/* Create a new outfit */}
           <Route
             path="/outfit"
