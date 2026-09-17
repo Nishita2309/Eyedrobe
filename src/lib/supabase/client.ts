@@ -5,7 +5,11 @@ const supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY
 
 if (!supabaseUrl || !supabaseKey) {
   throw new Error(
-    'Missing Supabase environment variables. Check your .env file.',
+    `Missing Supabase environment variables. URL: ${
+      supabaseUrl ? 'present' : 'missing'
+    }, Key: ${
+      supabaseKey ? 'present' : 'missing'
+    }`,
   )
 }
 
