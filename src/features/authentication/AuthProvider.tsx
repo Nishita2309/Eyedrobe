@@ -55,10 +55,11 @@ export function AuthProvider({
     email,
     password,
   ) => {
-    const { error } = await supabase.auth.signUp({
-      email,
-      password,
-    })
+    const { error } =
+      await supabase.auth.signUp({
+        email,
+        password,
+      })
 
     return {
       error: error
@@ -84,9 +85,28 @@ export function AuthProvider({
     }
   }
 
+  const signInWithGoogle: AuthContextValue[
+    'signInWithGoogle'
+  ] = async () => {
+    const { error } =
+      await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: {
+          redirectTo: `${window.location.origin}/`,
+        },
+      })
+
+    return {
+      error: error
+        ? new Error(error.message)
+        : null,
+    }
+  }
+
   const signOut: AuthContextValue['signOut'] =
     async () => {
-      const { error } = await supabase.auth.signOut()
+      const { error } =
+        await supabase.auth.signOut()
 
       return {
         error: error
@@ -102,6 +122,7 @@ export function AuthProvider({
         loading,
         signUp,
         signIn,
+        signInWithGoogle,
         signOut,
       }}
     >

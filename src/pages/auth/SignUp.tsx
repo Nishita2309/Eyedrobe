@@ -1,5 +1,8 @@
-import { useState } from 'react'
-import type { FormEvent, ReactNode } from 'react'
+import {
+  useState,
+  type FormEvent,
+  type ReactNode,
+} from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { motion } from 'framer-motion'
 
@@ -7,49 +10,53 @@ import { useAuth } from '../../features/authentication/useAuth'
 
 function GoogleIcon() {
   return (
-    <span className="text-xl font-bold leading-none">
-      G
-    </span>
-  )
-}
-
-function AppleIcon() {
-  return (
-    <span className="text-2xl leading-none">
-      
-    </span>
-  )
-}
-
-function MicrosoftIcon() {
-  return (
-    <span className="grid grid-cols-2 gap-[2px]">
-      <span className="h-[7px] w-[7px] bg-[#f35325]" />
-      <span className="h-[7px] w-[7px] bg-[#81bc06]" />
-      <span className="h-[7px] w-[7px] bg-[#05a6f0]" />
-      <span className="h-[7px] w-[7px] bg-[#ffba08]" />
-    </span>
+    <svg
+      viewBox="0 0 24 24"
+      className="h-5 w-5"
+      aria-hidden="true"
+    >
+      <path
+        fill="#4285F4"
+        d="M21.35 12.27c0-.68-.06-1.35-.18-1.99H12v3.77h5.24a4.48 4.48 0 0 1-1.94 2.94v2.45h3.14c1.84-1.7 2.91-4.2 2.91-7.17Z"
+      />
+      <path
+        fill="#34A853"
+        d="M12 21.75c2.63 0 4.84-.87 6.46-2.35l-3.14-2.45c-.87.58-1.98.93-3.32.93-2.55 0-4.71-1.72-5.49-4.03H3.27v2.53A9.75 9.75 0 0 0 12 21.75Z"
+      />
+      <path
+        fill="#FBBC05"
+        d="M6.51 13.85A5.86 5.86 0 0 1 6.2 12c0-.64.11-1.26.31-1.85V7.62H3.27A9.75 9.75 0 0 0 2.25 12c0 1.57.38 3.06 1.02 4.38l3.24-2.53Z"
+      />
+      <path
+        fill="#EA4335"
+        d="M12 6.12c1.43 0 2.71.49 3.72 1.45l2.79-2.79C16.83 3.2 14.63 2.25 12 2.25a9.75 9.75 0 0 0-8.73 5.37l3.24 2.53C7.29 7.84 9.45 6.12 12 6.12Z"
+      />
+    </svg>
   )
 }
 
 function SocialButton({
-  icon,
   label,
+  icon,
+  onClick,
+  loading = false,
 }: {
-  icon: ReactNode
   label: string
+  icon: ReactNode
+  onClick: () => void
+  loading?: boolean
 }) {
   return (
     <button
       type="button"
-      disabled
-      title={`${label} authentication will be available soon`}
-      className="flex min-h-[52px] items-center justify-center gap-2 rounded-2xl border-2 border-black bg-white px-2 text-sm font-bold text-black opacity-70 transition sm:px-3"
+      onClick={onClick}
+      disabled={loading}
+      className="flex w-full items-center justify-center gap-3 rounded-2xl border-2 border-black bg-white px-5 py-3.5 text-sm font-bold text-black shadow-[3px_3px_0px_#000] transition hover:-translate-y-0.5 hover:shadow-[5px_5px_0px_#000] disabled:cursor-not-allowed disabled:opacity-60"
     >
       {icon}
 
-      <span className="hidden sm:inline">
-        {label}
+      <span>
+        {loading ? 'Connecting...' : label}
       </span>
     </button>
   )
@@ -57,7 +64,11 @@ function SocialButton({
 
 export default function SignUp() {
   const navigate = useNavigate()
-  const { signUp } = useAuth()
+
+  const {
+    signUp,
+    signInWithGoogle,
+  } = useAuth()
 
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
@@ -66,11 +77,43 @@ export default function SignUp() {
 
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
+  const [googleLoading, setGoogleLoading] =
+    useState(false)
 
-  const handleSubmit = async (
+  async function handleGoogleSignUp() {
+    if (googleLoading) return
+
+    setError('')
+    setGoogleLoading(true)
+
+    try {
+      const { error: signInError } =
+        await signInWithGoogle()
+
+      if (signInError) {
+        setError(signInError.message)
+        setGoogleLoading(false)
+      }
+    } catch (error) {
+      console.error(
+        'Google sign-up failed:',
+        error,
+      )
+
+      setError(
+        'Unable to continue with Google. Please try again.',
+      )
+
+      setGoogleLoading(false)
+    }
+  }
+
+  async function handleSubmit(
     event: FormEvent<HTMLFormElement>,
-  ) => {
+  ) {
     event.preventDefault()
+
+    if (loading) return
 
     setError('')
 
@@ -88,122 +131,109 @@ export default function SignUp() {
 
     setLoading(true)
 
-    const { error } = await signUp(
-      email,
-      password,
-    )
+    try {
+      const { error: signUpError } = await signUp(
+        email,
+        password,
+      )
 
-    setLoading(false)
+      if (signUpError) {
+        setError(signUpError.message)
+        setLoading(false)
+        return
+      }
 
-    if (error) {
-      setError(error.message)
-      return
+      navigate('/login')
+    } catch (error) {
+      console.error(
+        'Email sign-up failed:',
+        error,
+      )
+
+      setError(
+        'Unable to create your account. Please try again.',
+      )
+
+      setLoading(false)
     }
-
-    navigate('/')
   }
 
   return (
-    <main className="relative flex min-h-screen items-center justify-center overflow-hidden px-4 py-8 sm:px-6">
-      {/* Background */}
-      <div className="absolute inset-0 bg-[linear-gradient(135deg,#7ee8a5_0%,#f9e27d_20%,#ff9f68_38%,#ff7eb6_55%,#7bdff2_72%,#8ca6ff_86%,#c89bff_100%)]" />
+    <main className="relative flex min-h-screen items-center justify-center overflow-hidden bg-gradient-to-br from-emerald-300 via-yellow-200 via-30% to-fuchsia-400 px-4 py-8 sm:px-6">
+      {/* Decorative background shapes */}
+      <div className="pointer-events-none absolute -left-24 -top-24 h-72 w-72 rounded-full bg-cyan-300/70 blur-3xl" />
 
-      {/* Decorative background blobs */}
-      <div className="absolute -left-24 -top-24 h-72 w-72 rounded-full bg-[#a8ff78]/50 blur-3xl" />
+      <div className="pointer-events-none absolute -bottom-32 -right-20 h-96 w-96 rounded-full bg-purple-400/70 blur-3xl" />
 
-      <div className="absolute -bottom-32 -right-24 h-96 w-96 rounded-full bg-[#d8a4ff]/50 blur-3xl" />
+      <div className="pointer-events-none absolute left-1/2 top-1/4 h-64 w-64 -translate-x-1/2 rounded-full bg-orange-300/50 blur-3xl" />
 
-      <div className="absolute left-1/2 top-1/3 h-64 w-64 -translate-x-1/2 rounded-full bg-white/20 blur-3xl" />
-
-      {/* Sign Up Card */}
       <motion.div
         initial={{
           opacity: 0,
-          y: 25,
-          scale: 0.97,
+          y: 20,
+          scale: 0.98,
         }}
         animate={{
           opacity: 1,
           y: 0,
           scale: 1,
         }}
-        transition={{
-          duration: 0.5,
-          ease: 'easeOut',
-        }}
-        className="relative z-10 w-full max-w-[480px]"
+        transition={{ duration: 0.45 }}
+        className="relative z-10 w-full max-w-md"
       >
-        <div className="rounded-[2rem] border-[4px] border-black bg-white px-6 py-8 shadow-[10px_10px_0px_rgba(0,0,0,0.9)] sm:px-10 sm:py-10">
-          {/* Logo and heading */}
-          <div className="text-center">
+        <div className="rounded-[2rem] border-4 border-black bg-white p-6 shadow-[8px_8px_0px_#000] sm:p-8">
+          {/* Logo */}
+          <div className="flex justify-center">
             <img
               src="/images/eyedrobe-logo.png"
               alt="EyeDrope"
-              className="mx-auto h-24 w-auto object-contain sm:h-28"
+              className="h-24 w-24 object-contain sm:h-28 sm:w-28"
             />
+          </div>
 
-            <motion.h1
-              initial={{
-                opacity: 0,
-                y: 8,
-              }}
-              animate={{
-                opacity: 1,
-                y: 0,
-              }}
-              transition={{
-                delay: 0.1,
-                duration: 0.4,
-              }}
-              className="mt-2 text-4xl font-black tracking-tight text-black sm:text-5xl"
-            >
+          {/* Heading */}
+          <div className="mt-3 text-center">
+            <h1 className="text-4xl font-black tracking-tight text-black sm:text-5xl">
               Create Account
-            </motion.h1>
+            </h1>
 
-            <p className="mt-2 text-sm font-medium text-gray-500 sm:text-base">
+            <p className="mt-2 text-sm font-medium text-gray-500">
               Start building your digital wardrobe.
             </p>
           </div>
 
-          {/* Social login */}
-          <div className="mt-8 grid grid-cols-3 gap-3">
+          {/* Google */}
+          <div className="mt-8">
             <SocialButton
+              label="Continue with Google"
               icon={<GoogleIcon />}
-              label="Google"
-            />
-
-            <SocialButton
-              icon={<AppleIcon />}
-              label="Apple"
-            />
-
-            <SocialButton
-              icon={<MicrosoftIcon />}
-              label="Microsoft"
+              onClick={() =>
+                void handleGoogleSignUp()
+              }
+              loading={googleLoading}
             />
           </div>
 
           {/* Divider */}
-          <div className="my-7 flex items-center gap-4">
+          <div className="my-6 flex items-center gap-4">
             <div className="h-px flex-1 bg-gray-300" />
 
-            <span className="text-sm font-semibold text-gray-400">
+            <span className="text-sm font-bold text-gray-500">
               or
             </span>
 
             <div className="h-px flex-1 bg-gray-300" />
           </div>
 
-          {/* Email Sign Up */}
+          {/* Email signup */}
           <form
             onSubmit={handleSubmit}
-            className="space-y-5"
+            className="space-y-4"
           >
-            {/* Email */}
             <div>
               <label
                 htmlFor="email"
-                className="mb-2 block text-sm font-bold text-black"
+                className="sr-only"
               >
                 Email
               </label>
@@ -211,22 +241,21 @@ export default function SignUp() {
               <input
                 id="email"
                 type="email"
-                required
-                autoComplete="email"
                 value={email}
                 onChange={(event) =>
                   setEmail(event.target.value)
                 }
                 placeholder="Enter your Mail"
-                className="w-full rounded-2xl border-[2px] border-black bg-white px-4 py-3.5 text-sm font-medium text-black outline-none transition placeholder:text-gray-400 focus:-translate-y-0.5 focus:shadow-[4px_4px_0px_rgba(0,0,0,0.9)]"
+                autoComplete="email"
+                required
+                className="w-full rounded-2xl border-2 border-black bg-white px-5 py-3.5 text-sm font-medium text-black outline-none transition placeholder:text-gray-400 focus:ring-4 focus:ring-pink-200"
               />
             </div>
 
-            {/* Password */}
             <div>
               <label
                 htmlFor="password"
-                className="mb-2 block text-sm font-bold text-black"
+                className="sr-only"
               >
                 Password
               </label>
@@ -234,22 +263,21 @@ export default function SignUp() {
               <input
                 id="password"
                 type="password"
-                required
-                autoComplete="new-password"
                 value={password}
                 onChange={(event) =>
                   setPassword(event.target.value)
                 }
-                placeholder="Create a password"
-                className="w-full rounded-2xl border-[2px] border-black bg-white px-4 py-3.5 text-sm font-medium text-black outline-none transition placeholder:text-gray-400 focus:-translate-y-0.5 focus:shadow-[4px_4px_0px_rgba(0,0,0,0.9)]"
+                placeholder="Enter your Password"
+                autoComplete="new-password"
+                required
+                className="w-full rounded-2xl border-2 border-black bg-white px-5 py-3.5 text-sm font-medium text-black outline-none transition placeholder:text-gray-400 focus:ring-4 focus:ring-pink-200"
               />
             </div>
 
-            {/* Confirm Password */}
             <div>
               <label
                 htmlFor="confirmPassword"
-                className="mb-2 block text-sm font-bold text-black"
+                className="sr-only"
               >
                 Confirm Password
               </label>
@@ -257,64 +285,50 @@ export default function SignUp() {
               <input
                 id="confirmPassword"
                 type="password"
-                required
-                autoComplete="new-password"
                 value={confirmPassword}
                 onChange={(event) =>
                   setConfirmPassword(
                     event.target.value,
                   )
                 }
-                placeholder="Confirm your password"
-                className="w-full rounded-2xl border-[2px] border-black bg-white px-4 py-3.5 text-sm font-medium text-black outline-none transition placeholder:text-gray-400 focus:-translate-y-0.5 focus:shadow-[4px_4px_0px_rgba(0,0,0,0.9)]"
+                placeholder="Confirm your Password"
+                autoComplete="new-password"
+                required
+                className="w-full rounded-2xl border-2 border-black bg-white px-5 py-3.5 text-sm font-medium text-black outline-none transition placeholder:text-gray-400 focus:ring-4 focus:ring-pink-200"
               />
             </div>
 
-            {/* Error */}
             {error && (
-              <motion.p
-                initial={{
-                  opacity: 0,
-                  y: -5,
-                }}
-                animate={{
-                  opacity: 1,
-                  y: 0,
-                }}
-                className="rounded-2xl border-2 border-red-300 bg-red-50 px-4 py-3 text-sm font-medium text-red-600"
+              <div
+                role="alert"
+                className="rounded-2xl border-2 border-red-300 bg-red-50 px-4 py-3 text-sm font-medium text-red-700"
               >
                 {error}
-              </motion.p>
+              </div>
             )}
 
-            {/* Create Account */}
             <button
               type="submit"
               disabled={loading}
-              className="w-full rounded-2xl border-[2px] border-black bg-[linear-gradient(90deg,#ff7eb3_0%,#ff9a6a_25%,#ffd166_50%,#7ee8a5_72%,#8ca6ff_100%)] px-5 py-4 text-sm font-black text-black shadow-[4px_4px_0px_rgba(0,0,0,0.9)] transition hover:-translate-y-1 hover:shadow-[6px_6px_0px_rgba(0,0,0,0.9)] active:translate-y-0 active:shadow-[2px_2px_0px_rgba(0,0,0,0.9)] disabled:cursor-not-allowed disabled:opacity-60"
+              className="w-full rounded-2xl border-2 border-black bg-gradient-to-r from-pink-400 via-orange-300 to-yellow-300 px-5 py-3.5 text-sm font-black text-black shadow-[3px_3px_0px_#000] transition hover:-translate-y-0.5 hover:shadow-[5px_5px_0px_#000] disabled:cursor-not-allowed disabled:opacity-60"
             >
               {loading
-                ? 'Creating account...'
+                ? 'Creating Account...'
                 : 'Create Account'}
             </button>
           </form>
 
-          {/* Sign In */}
-          <p className="mt-7 text-center text-sm text-gray-500">
+          {/* Login */}
+          <p className="mt-7 text-center text-sm font-medium text-gray-600">
             Already have an account?{' '}
             <Link
               to="/login"
-              className="font-bold text-black underline decoration-2 underline-offset-4 transition hover:text-purple-600"
+              className="font-black text-black underline decoration-2 underline-offset-4 transition hover:text-pink-600"
             >
-              Sign In
+              Log In
             </Link>
           </p>
         </div>
-
-        {/* Branding */}
-        <p className="mt-5 text-center text-xs font-semibold text-black/60">
-          EyeDrope · Own → Imagine → Wear
-        </p>
       </motion.div>
     </main>
   )

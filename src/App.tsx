@@ -3,6 +3,9 @@ import { Navigate, Route, Routes } from 'react-router-dom'
 import Login from './pages/auth/Login'
 import SignUp from './pages/auth/SignUp'
 import Home from './pages/home/Home'
+import ProfileInformation from './pages/profile/ProfileInformation'
+import AccountSecurity from './pages/profile/AccountSecurity'
+import Appearance from './pages/profile/Appearance'
 
 import Wardrobe from './pages/wardrobe/Wardrobe'
 import AddClothing from './pages/wardrobe/AddClothing'
@@ -13,7 +16,7 @@ import SavedOutfit from './pages/outfit/SavedOutfit'
 import OutfitStudio from './pages/outfit/OutfitStudio'
 import Spaces from './pages/spaces/Spaces'
 import SpaceDetails from './pages/spaces/SpaceDetails'
-
+import Profile from './pages/profile/Profile'
 import ProtectedRoute from './routes/ProtectedRoute'
 import OfflineBanner from './components/ui/OfflineBanner'
 import SyncStatus from './components/ui/SyncStatus'
@@ -73,6 +76,26 @@ function App() {
             path="/"
             element={<Home />}
           />
+
+          <Route 
+            path="/profile" 
+            element={<Profile />} 
+          />
+
+          <Route
+  path="/profile/information"
+  element={<ProfileInformation />}
+/>
+
+<Route
+  path="/profile/security"
+  element={<AccountSecurity />}
+/>
+
+<Route
+  path="/profile/appearance"
+  element={<Appearance />}
+/>
 
           <Route
             path="/wardrobe"
